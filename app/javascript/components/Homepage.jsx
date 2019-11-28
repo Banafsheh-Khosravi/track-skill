@@ -8,7 +8,18 @@ export default class Homepage extends React.Component {
       email: "",
       password: ""
     };
+
+    this.onChange = this.onChange.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
   }
+
+  onChange(event) {
+    this.setState({ [event.target.name]: event.target.value });
+  }
+  onSubmit(event) {
+    event.preventDefault();
+  }
+
   render() {
     return (
       <div className="container-fluid p-0 bg_primary-color">
