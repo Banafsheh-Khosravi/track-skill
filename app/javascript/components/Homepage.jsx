@@ -18,6 +18,15 @@ export default class Homepage extends React.Component {
   }
   onSubmit(event) {
     event.preventDefault();
+
+    const url = "/api/v1/users/sign_in";
+    const { email, password } = this.state;
+
+    if (email.length === 0 || password.length === 0) return;
+
+    const token = document.querySelector('meta[name="csrf-token"]').textContent;
+    const body = { user: { email, password } };
+    console.log(body);
   }
 
   render() {
