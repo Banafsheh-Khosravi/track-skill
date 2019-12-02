@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users, path: '/api/v1/users', defaults: { format: :json }
   root 'homepage#index'
   get '/*path' => 'homepage#index'
 

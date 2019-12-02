@@ -13,9 +13,23 @@ export default class Homepage extends React.Component {
     this.onSubmit = this.onSubmit.bind(this);
   }
 
+  componentDidMount() {
+    let userDetails = localStorage.getItem("userDetail");
+    userDetails = JSON.parse(userDetails);
+
+    if (userDetails) {
+      if (userDetails.role === "admin") {
+        this.props.history.push("/admin");
+      } else {
+        this.props.history.push("/employee");
+      }
+    }
+  }
+
   onChange(event) {
     this.setState({ [event.target.name]: event.target.value });
   }
+
   onSubmit(event) {
     event.preventDefault();
 
@@ -24,9 +38,38 @@ export default class Homepage extends React.Component {
 
     if (email.length === 0 || password.length === 0) return;
 
-    const token = document.querySelector('meta[name="csrf-token"]').textContent;
+    const token = document.querySelector('meta[name="csrf-token"]').content;
     const body = { user: { email, password } };
-    console.log(body);
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    })
+      .then(response => {
+        console.log(response);
+        for (let header of response.headers.entries()) {
+          if (header[0] === "authorization") {
+            const jwtToken = header[1].split(" ")[1];
+            localStorage.setItem("token", jwtToken);
+          }
+        }
+        return response.json();
+      })
+      .then(response => {
+        const userDetail = JSON.stringify(response);
+        localStorage.setItem("userDetail", userDetail);
+
+        if (response.role === "admin") {
+          this.props.history.push("/admin");
+        } else {
+          this.props.history.push("/employee");
+        }
+      })
+      .catch(error => console.log(error.message));
   }
 
   render() {

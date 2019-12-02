@@ -8,7 +8,7 @@ Devise.setup do |config|
   # confirmation, reset password and unlock tokens in the database.
   # Devise will use the `secret_key_base` as its `secret_key`
   # by default. You can change it below and use your own secret key.
-  # config.secret_key = '9303b8bb9ac88c77465db3b31c10a1c554fc8f765ec5db0148961eb840f18d45f5ae7a6782a4c3e69a2fabb6501596a52270a4c9e4d00954d658cf891ba90e48'
+  # config.secret_key = '75d4d817bc4b141c6562ba56af5604085e1f531b2bff702663a863c5d45a62ffe7dd72012871d02f504de68db262722e943cd9bc9672f801d52b3843eae11697'
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
@@ -88,13 +88,13 @@ Devise.setup do |config|
   # Notice that if you are skipping storage for all authentication paths, you
   # may want to disable generating routes to Devise's sessions controller by
   # passing skip: :sessions to `devise_for` in your config/routes.rb
-  config.skip_session_storage = [:http_auth :params_auth]
+  config.skip_session_storage = [:http_auth, :params_auth]
 
   # By default, Devise cleans up the CSRF token on authentication to
   # avoid CSRF token fixation attacks. This means that, when using AJAX
   # requests for sign in and sign up, you need to get a new CSRF token
   # from the server. You can disable this option at your own risk.
-  config.clean_up_csrf_token_on_authentication = false
+config.clean_up_csrf_token_on_authentication = false
 
   # When false, Devise will not attempt to reload routes on eager load.
   # This can reduce the time taken to boot the app but if your application
@@ -114,7 +114,7 @@ Devise.setup do |config|
   config.stretches = Rails.env.test? ? 1 : 11
 
   # Set up a pepper to generate the hashed password.
-  # config.pepper = '0f66c829a84cc03fa3c40da8bafd52e2de6747f4e8528c85f0b2658856bb33fd5e993f62cc31d0cdb226b5b13eff2b711eb314c811b9f66801f4b845a24c036c'
+  # config.pepper = 'bf5391ddb06bc9ffee6c1eec4f290b5cc35e16cd2e3d38e4fddaf7872ad21b03021300e72fbf8296d6625ded53c092e567ddfce3a0420e7056c2ddb56c71ef05'
 
   # Send a notification to the original email when the user's email is changed.
   # config.send_email_changed_notification = false
@@ -296,6 +296,7 @@ Devise.setup do |config|
   # When set to false, does not sign a user in automatically after their password is
   # changed. Defaults to true, so a user is signed in automatically after changing a password.
   # config.sign_in_after_change_password = true
+
   config.jwt do |jwt|
     jwt.secret = ENV['DEVISE_JWT_SECRET_KEY']
   end
