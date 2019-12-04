@@ -9,8 +9,8 @@ export default class Homepage extends React.Component {
       password: ""
     };
 
-    this.onChange = this.onChange.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
+    this.onChange = this.onChange.bind(this); // input
+    this.onSubmit = this.onSubmit.bind(this); // button
   }
 
   componentDidMount() {
@@ -50,7 +50,7 @@ export default class Homepage extends React.Component {
       body: JSON.stringify(body)
     })
       .then(response => {
-        console.log(response);
+        //console.log(response);
         for (let header of response.headers.entries()) {
           if (header[0] === "authorization") {
             const jwtToken = header[1].split(" ")[1];

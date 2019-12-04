@@ -1,38 +1,41 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
 import Header from "./Header";
+import Alert from "./Alert";
+import { Link } from "react-router-dom";
 
 export default class Admin extends Component {
   constructor(props) {
     super(props);
 
-    let userDetails = localStorage.getItem("userDetail");
-    userDetails = JSON.parse(userDetails);
+    let userDetail = localStorage.getItem("userDetail");
+    userDetail = JSON.parse(userDetail);
 
-    if (!userDetails) this.props.history.push("/");
+    if (!userDetail) this.props.history.push("/");
 
     this.state = {
-      user: userDetails,
+      user: userDetail,
       full_name: "",
       email: "",
       skill: "",
       desc: "",
       message: null,
       employees: [],
-      skillCount: 0
+      skillCount: null,
+      filterTerm: "all"
     };
 
     this.onChange = this.onChange.bind(this);
     this.addEmployee = this.addEmployee.bind(this);
     this.addSkill = this.addSkill.bind(this);
-    this.fetchEmployee = this.fetchEmployee.bind(this);
+    this.fetchEmployees = this.fetchEmployees.bind(this);
+    this.filterEmployees = this.filterEmployees.bind(this);
   }
 
   componentDidMount() {
-    this.fetchEmployee();
+    this.fetchEmployees();
   }
 
-  fetchEmployee() {
+  fetchEmployees() {
     const url = "/api/v1/employees";
     const token = document.querySelector('meta[name="csrf-token"]').content;
     const jwtToken = localStorage.getItem("token");
@@ -50,25 +53,26 @@ export default class Admin extends Component {
 
         this.setState({ employees, skillCount: skill_count });
       })
-      .catch(error => console.log(error));
+      .catch(error => console.log(error.message));
   }
 
   onChange(event) {
     this.setState({ [event.target.name]: event.target.value });
   }
-
+  // -------------------Create Employee--------------------------------
   addEmployee(event) {
     event.preventDefault();
 
-    const { email, full_name } = this.state;
+    const url = "/api/v1/create_employee";
+    const { full_name, email } = this.state;
 
     if (email.length === 0 || full_name.length === 0) return;
 
-    const url = "/api/v1/create_employee";
     const token = document.querySelector('meta[name="csrf-token"]').content;
+    const body = {
+      user: { full_name: full_name.trim(), email: email.trim().toLowerCase() }
+    };
     const jwtToken = localStorage.getItem("token");
-
-    const body = { user: { email, full_name } };
 
     fetch(url, {
       method: "POST",
@@ -91,27 +95,27 @@ export default class Admin extends Component {
         } else {
           const successMessage = "Employee has been created";
           this.setState({ message: successMessage, full_name: "", email: "" });
-          this.fetchEmployee();
+          this.fetchEmployees();
         }
       })
-      .catch(error => console.log(error));
+      .catch(error => console.log(error.message));
   }
-
+  // -------------------Add Skills--------------------------------
   addSkill(event) {
     event.preventDefault();
 
-    const url = "/api/v1/add_skill";
+    const url = "/api/v1/skill";
     const { skill, desc } = this.state;
 
-    if (skill.length === 0 || desc.length === 0) return;
+    if (desc.length === 0 || skill.length === 0) return;
 
+    const token = document.querySelector('meta[name="csrf-token"]').content;
     const body = {
       skill: {
-        name: skill,
-        desc
+        name: skill.trim().toLowerCase(),
+        desc: desc.trim().toLowerCase()
       }
     };
-    const token = document.querySelector('meta[name="csrf-token"]').content;
     const jwtToken = localStorage.getItem("token");
 
     fetch(url, {
@@ -135,8 +139,33 @@ export default class Admin extends Component {
         } else {
           const successMessage = "Skill has been added!";
           this.setState({ message: successMessage, skill: "", desc: "" });
-          this.fetchEmployee();
+          this.fetchEmployees();
         }
+      })
+      .catch(error => console.log(error.message));
+  }
+  // -------------------Filter Employee--------------------------------
+  filterEmployees(event) {
+    event.preventDefault();
+
+    const { filterTerm } = this.state;
+
+    const url = `/api/v1/employees?q=${filterTerm}`;
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const jwtToken = localStorage.getItem("token");
+
+    fetch(url, {
+      headers: {
+        "X-CSRF-Token": token,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwtToken}`
+      }
+    })
+      .then(response => response.json())
+      .then(response => {
+        const { employees, skill_count } = response;
+
+        this.setState({ employees, skillCount: skill_count });
       })
       .catch(error => console.log(error.message));
   }
@@ -227,10 +256,43 @@ export default class Admin extends Component {
             </nav>
             <main className="col-12 col-lg-10 bg-white bg-dark">
               <div className="container">
-                <div className="col-12">
+                <div className="col-lg-12">
                   {this.state.message && <Alert message={this.state.message} />}
                 </div>
-                {/** filter element here */}
+                <div className="row">
+                  <div className="container col-12">
+                    <div className="py-2 float-right">
+                      <form
+                        className="form-inline"
+                        onSubmit={this.filterEmployees}
+                      >
+                        <div className="form-group">
+                          <label htmlFor="search">
+                            Sort employee by proficiency
+                          </label>
+                          <select
+                            className="mx-2"
+                            value={this.state.filterTerm}
+                            name="filterTerm"
+                            onChange={this.onChange}
+                          >
+                            <option value="all">All</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advance">Advance</option>
+                            <option value="master">Master</option>
+                          </select>
+                        </div>
+                        <button
+                          type="submit"
+                          className="btn btn-primary btn-sm mr-1"
+                        >
+                          Filter
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
                 {this.state.employees.length > 0 ? (
                   <div className="mt-4 container-fluid">
                     <h4 className="display-4">Employee Skill Record</h4>
@@ -241,6 +303,36 @@ export default class Admin extends Component {
                       Total Number of Skills: {this.state.skillCount}
                     </p>
                     <div className="my-4 table-wrapper">
+                      {/* <div className="py-2 float-right">
+                        <form
+                          className="form-inline"
+                          onSubmit={this.filterEmployees}
+                        >
+                          <div className="form-group">
+                            <label htmlFor="search">
+                              Sort employee by proficiency
+                            </label>
+                            <select
+                              className="mx-2"
+                              value={this.state.filterTerm}
+                              name="filterTerm"
+                              onChange={this.onChange}
+                            >
+                              <option value="all">All</option>
+                              <option value="beginner">Beginner</option>
+                              <option value="intermediate">Intermediate</option>
+                              <option value="advance">Advance</option>
+                              <option value="master">Master</option>
+                            </select>
+                          </div>
+                          <button
+                            type="submit"
+                            className="btn btn-primary btn-sm mr-1"
+                          >
+                            Filter
+                          </button>
+                        </form>
+                      </div> */}
                       <div className="table-responsive">
                         <table className="table table-hover">
                           <thead>

@@ -1,9 +1,4 @@
 Rails.application.routes.draw do
-  namespace :api do
-    namespace :v1 do
-      get 'users/create'
-    end
-  end
   devise_for :users, path: '/api/v1/users', defaults: { format: :json }
   namespace :api do
     namespace :v1 do
